@@ -1,0 +1,25 @@
+  Widget atualizarTemperatura(String myCity) {
+    return FutureBuilder(
+        future: getWeather(myCity),
+        builder: (BuildContext context, AsyncSnapshot<Map> snapshot) {
+          if (snapshot.hasData) {
+            Map content = snapshot.data;
+            return Container(
+              child: Center(
+                child: Column(
+                  children: <Widget>[
+                    ListTile(
+                      title: Text(
+                        content['main']['temp'].toString(),
+                        style: weatherStyle(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          } else {
+            return Container(child: Text('Verificando a temperatura atual...'));
+          }
+        });
+  }

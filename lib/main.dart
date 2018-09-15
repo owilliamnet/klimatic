@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:klimatic/UI/klimatic.dart';
+import './UI/klimatic.dart';
 
 void main() {
-  MaterialApp(
-    title: 'Klimatic - Tempo Agora',
-    home: Klimatic(),
+  runApp(
+    MaterialApp(
+      title: 'Klimatic - Tempo Agora',
+      home: Klimatic(),
+    ),
   );
 }

@@ -10,6 +10,20 @@ class Klimatic extends StatefulWidget {
 }
 
 class _KlimaticState extends State<Klimatic> {
+  String _cityEntered;
+
+  Future _goToNextScreen(BuildContext context) async {
+    Map results = await Navigator.of(context)
+        .push(MaterialPageRoute<Map>(builder: (BuildContext context) {
+      return ChangeCity();
+    }));
+
+    if (results != null && results.containsKey('enter')) {
+      //print(results['enter'].toString());
+      _cityEntered = results['enter'];
+    }
+  }
+
   Map dadosDoTempo;
 
   void getClima() async {
@@ -28,9 +42,11 @@ class _KlimaticState extends State<Klimatic> {
         backgroundColor: Colors.white,
         actions: <Widget>[
           IconButton(
-            icon: Icon(Icons.menu),
             color: Colors.blueGrey,
-            onPressed: getClima,
+            icon: Icon(Icons.menu),
+            onPressed: () {
+              _goToNextScreen(context);
+            },
           )
         ],
       ),
@@ -49,12 +65,15 @@ class _KlimaticState extends State<Klimatic> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text('cidade',
-                      style: TextStyle(color:Colors.yellowAccent[200],fontSize:10.0),
-                      textAlign: TextAlign.start,
+                Text(
+                  'cidade',
+                  style: TextStyle(
+                      color: Colors.yellowAccent[200], fontSize: 10.0),
+                  textAlign: TextAlign.start,
                 ),
                 Text(
-                  utils.defaultCity,
+                  //'$_cityEntered',
+                  '${_cityEntered == null ? utils.defaultCity : _cityEntered}',
                   style: cityStyle(),
                 ),
               ],
@@ -73,7 +92,7 @@ class _KlimaticState extends State<Klimatic> {
                 Padding(
                   padding: EdgeInsets.only(top: 250.0),
                 ),
-                atualizarTemperatura(utils.defaultCity),
+                atualizarTemperatura(_cityEntered),
               ]))),
         ],
       ),
@@ -91,15 +110,33 @@ class _KlimaticState extends State<Klimatic> {
 
   Widget atualizarTemperatura(String myCity) {
     return FutureBuilder(
-        future: getWeather(myCity),
+        future: getWeather(myCity == null ? utils.defaultCity : myCity),
         builder: (BuildContext context, AsyncSnapshot<Map> snapshot) {
           if (snapshot.hasData) {
             Map content = snapshot.data;
             if (content.isNotEmpty) {
               try {
-                return Text(
-                  content['main']['temp'].toString(),
-                  style: weatherStyle(),
+                return Container(
+                  child: Column(
+                    children: <Widget>[
+                      Text(
+                        content['main']['temp'].toString(),
+                        style: weatherStyle(),
+                      ),
+                      Text(
+                       "Umidade: ${content['main']['humidity'].toString()}" ,
+                       style: dadosExtras(),
+                      ),
+                      Text(
+                        "Min.: ${content['main']['temp_min'].toString()}" ,
+                        style: dadosExtras(),
+                      ),
+                      Text(
+                        "Max.: ${content['main']['temp_max'].toString()}" ,
+                        style: dadosExtras(),
+                      ),
+                    ],
+                  ),
                 );
               } catch (ex) {
                 return Text(
@@ -120,11 +157,64 @@ class _KlimaticState extends State<Klimatic> {
   }
 }
 
+class ChangeCity extends StatelessWidget {
+  var _cityFieldController = TextEditingController();
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.blueAccent,
+        centerTitle: true,
+        title: Text('Change City'),
+      ),
+      body: Stack(
+        children: <Widget>[
+          Center(
+            child: Image.asset('images/white_snow.png',
+                width: 490.0, height: 1200.0, fit: BoxFit.fill),
+          ),
+          ListView(children: <Widget>[
+            ListTile(
+              title: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Informe a cidade',
+                ),
+                controller: _cityFieldController,
+                keyboardType: TextInputType.text,
+              ),
+            ),
+            ListTile(
+              title: FlatButton(
+                child: Text('Get Weather'),
+                color: Colors.redAccent,
+                textColor: Colors.white70,
+                onPressed: () {
+                  Navigator.pop(context, {
+                    'enter': _cityFieldController.text,
+                  });
+                },
+              ),
+            ),
+          ])
+        ],
+      ),
+    );
+  }
+}
+
 TextStyle cityStyle() {
   return TextStyle(
     color: Colors.white,
     fontSize: 22.9,
     fontStyle: FontStyle.italic,
+  );
+}
+
+TextStyle dadosExtras() {
+  return TextStyle(
+    color: Colors.white70,
+    fontSize: 17.0,
+    fontStyle: FontStyle.normal,
   );
 }
 
